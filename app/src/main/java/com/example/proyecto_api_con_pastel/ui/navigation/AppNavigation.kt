@@ -13,6 +13,8 @@ import com.example.proyecto_api_con_pastel.ui.detail.DetailScreen
 import com.example.proyecto_api_con_pastel.ui.detail.DetailViewModel
 import com.example.proyecto_api_con_pastel.ui.favoritos.FavoritosScreen
 import com.example.proyecto_api_con_pastel.ui.favoritos.FavoritosViewModel
+import com.example.proyecto_api_con_pastel.ui.finalspace.FinalSpaceScreen
+import com.example.proyecto_api_con_pastel.ui.finalspace.FinalSpaceViewModel
 import com.example.proyecto_api_con_pastel.ui.list.ListScreen
 import com.example.proyecto_api_con_pastel.ui.list.ListViewModel
 
@@ -39,6 +41,9 @@ fun AppNavigation() {
                 },
                 onFavoritesClick = {
                     navController.navigate(Screen.Favoritos.route)
+                },
+                onFinalSpaceClick = {
+                    navController.navigate(Screen.FinalSpace.route)
                 }
             )
         }
@@ -76,6 +81,20 @@ fun AppNavigation() {
                 onGiveawayClick = { giveawayId ->
                     navController.navigate(Screen.Detail.createRoute(giveawayId))
                 },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Screen.FinalSpace.route) {
+            val finalSpaceViewModel: FinalSpaceViewModel = viewModel(
+                factory = FinalSpaceViewModel.Factory(
+                    repository = app.finalSpaceRepository
+                )
+            )
+            FinalSpaceScreen(
+                viewModel = finalSpaceViewModel,
                 onBackClick = {
                     navController.popBackStack()
                 }

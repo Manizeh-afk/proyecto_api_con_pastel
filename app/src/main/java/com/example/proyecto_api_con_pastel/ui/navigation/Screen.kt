@@ -6,4 +6,5 @@ sealed class Screen(val route: String) {
         fun createRoute(giveawayId: Int) = "giveaway_detail/$giveawayId"
     }
     object Favoritos : Screen("favoritos")
+    object FinalSpace : Screen("final_space")
 }

@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -38,7 +39,8 @@ import com.example.proyecto_api_con_pastel.ui.components.LoadingIndicator
 fun ListScreen(
     viewModel: ListViewModel,
     onGiveawayClick: (Int) -> Unit,
-    onFavoritesClick: () -> Unit
+    onFavoritesClick: () -> Unit,
+    onFinalSpaceClick: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val platforms = listOf("pc", "steam", "ps4", "xbox-one", "switch", "android")
@@ -48,6 +50,13 @@ fun ListScreen(
             TopAppBar(
                 title = { Text("GamerPower Giveaways") },
                 actions = {
+                    IconButton(onClick = onFinalSpaceClick) {
+                        Icon(
+                            imageVector = Icons.Default.Public,
+                            contentDescription = "Final Space",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                     IconButton(onClick = onFavoritesClick) {
                         Icon(
                             imageVector = Icons.Default.Favorite,
