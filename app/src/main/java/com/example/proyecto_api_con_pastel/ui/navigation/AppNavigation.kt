@@ -15,6 +15,8 @@ import com.example.proyecto_api_con_pastel.ui.favoritos.FavoritosScreen
 import com.example.proyecto_api_con_pastel.ui.favoritos.FavoritosViewModel
 import com.example.proyecto_api_con_pastel.ui.finalspace.FinalSpaceScreen
 import com.example.proyecto_api_con_pastel.ui.finalspace.FinalSpaceViewModel
+import com.example.proyecto_api_con_pastel.ui.insult.InsultChatScreen
+import com.example.proyecto_api_con_pastel.ui.insult.InsultChatViewModel
 import com.example.proyecto_api_con_pastel.ui.list.ListScreen
 import com.example.proyecto_api_con_pastel.ui.list.ListViewModel
 
@@ -44,6 +46,9 @@ fun AppNavigation() {
                 },
                 onFinalSpaceClick = {
                     navController.navigate(Screen.FinalSpace.route)
+                },
+                onInsultChatClick = {
+                    navController.navigate(Screen.InsultChat.route)
                 }
             )
         }
@@ -95,6 +100,20 @@ fun AppNavigation() {
             )
             FinalSpaceScreen(
                 viewModel = finalSpaceViewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Screen.InsultChat.route) {
+            val insultChatViewModel: InsultChatViewModel = viewModel(
+                factory = InsultChatViewModel.Factory(
+                    repository = app.insultRepository
+                )
+            )
+            InsultChatScreen(
+                viewModel = insultChatViewModel,
                 onBackClick = {
                     navController.popBackStack()
                 }

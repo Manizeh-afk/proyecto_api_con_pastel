@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SentimentVeryDissatisfied
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -40,7 +41,8 @@ fun ListScreen(
     viewModel: ListViewModel,
     onGiveawayClick: (Int) -> Unit,
     onFavoritesClick: () -> Unit,
-    onFinalSpaceClick: () -> Unit
+    onFinalSpaceClick: () -> Unit,
+    onInsultChatClick: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val platforms = listOf("pc", "steam", "ps4", "xbox-one", "switch", "android")
@@ -50,6 +52,13 @@ fun ListScreen(
             TopAppBar(
                 title = { Text("GamerPower Giveaways") },
                 actions = {
+                    IconButton(onClick = onInsultChatClick) {
+                        Icon(
+                            imageVector = Icons.Default.SentimentVeryDissatisfied,
+                            contentDescription = "Chat de Insultos",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                     IconButton(onClick = onFinalSpaceClick) {
                         Icon(
                             imageVector = Icons.Default.Public,
