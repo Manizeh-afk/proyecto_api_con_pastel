@@ -15,7 +15,7 @@ class FavoritosRepository(
     }
 
     suspend fun toggleFavorito(giveaway: Giveaway) {
-        if (giveaway.isFavorite) {
+        if (favoritoDao.isFavoritoNow(giveaway.id)) {
             favoritoDao.deleteFavoritoById(giveaway.id)
         } else {
             favoritoDao.insertFavorito(giveaway.toFavoritoEntity())
