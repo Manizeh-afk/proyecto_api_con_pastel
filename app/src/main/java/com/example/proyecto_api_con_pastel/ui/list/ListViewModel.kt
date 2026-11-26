@@ -7,10 +7,10 @@ import com.example.proyecto_api_con_pastel.data.FavoritosRepository
 import com.example.proyecto_api_con_pastel.data.GamerPowerRepository
 import com.example.proyecto_api_con_pastel.model.Giveaway
 import com.example.proyecto_api_con_pastel.util.Resource
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -31,6 +31,7 @@ class ListViewModel(
 
     private val _uiState = MutableStateFlow(ListUiState())
     val uiState: StateFlow<ListUiState> = _uiState.asStateFlow()
+    private var giveawaysJob: Job? = null
 
     init {
         loadGiveaways()
@@ -38,29 +39,36 @@ class ListViewModel(
     }
 
     fun loadGiveaways(platform: String? = _uiState.value.selectedPlatform) {
-        _uiState.value = _uiState.value.copy(selectedPlatform = platform)
-        gamerPowerRepository.getGiveaways(platform).onEach { result ->
-            when (result) {
-                is Resource.Loading -> {
-                    _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-                }
-                is Resource.Success -> {
-                    val list = result.data ?: emptyList()
-                    _uiState.value = _uiState.value.copy(
-                        giveaways = list,
-                        isLoading = false,
-                        errorMessage = null
-                    )
-                    applyFilterAndSearch()
-                }
-                is Resource.Error -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = result.message
-                    )
+        _uiState.value = _uiState.value.copy(
+            selectedPlatform = platform,
+            isLoading = true,
+            errorMessage = null
+        )
+
+        giveawaysJob?.cancel()
+        giveawaysJob = gamerPowerRepository.getGiveaways(platform)
+            .onEach { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+                    }
+                    is Resource.Success -> {
+                        _uiState.value = _uiState.value.copy(
+                            giveaways = result.data.orEmpty(),
+                            isLoading = false,
+                            errorMessage = null
+                        )
+                        applyFilterAndSearch()
+                    }
+                    is Resource.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            errorMessage = result.message
+                        )
+                    }
                 }
             }
-        }.launchIn(viewModelScope)
+            .launchIn(viewModelScope)
     }
 
     private fun observeFavoritos() {
@@ -93,14 +101,13 @@ class ListViewModel(
     private fun applyFilterAndSearch() {
         val query = _uiState.value.searchQuery.trim().lowercase()
         val currentList = _uiState.value.giveaways
-
         val filtered = if (query.isEmpty()) {
             currentList
         } else {
             currentList.filter {
-                it.title.lowercase().contains(query) ||
-                        it.platforms.lowercase().contains(query) ||
-                        it.type.lowercase().contains(query)
+                it.title.contains(query, ignoreCase = true) ||
+                    it.platforms.contains(query, ignoreCase = true) ||
+                    it.type.contains(query, ignoreCase = true)
             }
         }
         _uiState.value = _uiState.value.copy(filteredGiveaways = filtered)
