@@ -5,6 +5,7 @@ import com.example.proyecto_api_con_pastel.data.local.GiveawayCacheDao
 import com.example.proyecto_api_con_pastel.data.remote.GamerPowerApiService
 import com.example.proyecto_api_con_pastel.model.Giveaway
 import com.example.proyecto_api_con_pastel.util.Resource
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -19,7 +20,7 @@ class GamerPowerRepository(
         try {
             val response = apiService.getGiveaways(platform = platform)
             if (response.isSuccessful && response.body() != null) {
-                val dtos = response.body()!!
+                val dtos = response.body().orEmpty()
                 cacheDao.clearCache()
                 cacheDao.insertAll(dtos.map { it.toCacheEntity() })
 
@@ -31,6 +32,8 @@ class GamerPowerRepository(
             } else {
                 emitFromCache("Error al cargar datos del servidor (${response.code()})")
             }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             emitFromCache("Error de conexión: ${e.localizedMessage ?: "Verifique su conexión a internet"}")
         }
@@ -57,25 +60,25 @@ class GamerPowerRepository(
                 val isFav = favoritoDao.isFavorito(id).first()
                 emit(Resource.Success(response.body()!!.toDomain(isFavorite = isFav)))
             } else {
-                // Intento buscar en cache local si falla la red
-                val cachedList = cacheDao.getCachedGiveaways().first()
-                val cachedItem = cachedList.find { it.id == id }
-                if (cachedItem != null) {
-                    val isFav = favoritoDao.isFavorito(id).first()
-                    emit(Resource.Success(cachedItem.toDomain(isFavorite = isFav)))
-                } else {
-                    emit(Resource.Error("No se encontró el giveaway con ID $id"))
-                }
+                emitCachedGiveaway(id, "No se encontró el giveaway con ID $id")
             }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
-            val cachedList = cacheDao.getCachedGiveaways().first()
-            val cachedItem = cachedList.find { it.id == id }
-            if (cachedItem != null) {
-                val isFav = favoritoDao.isFavorito(id).first()
-                emit(Resource.Success(cachedItem.toDomain(isFavorite = isFav)))
-            } else {
-                emit(Resource.Error("Error de conexión: ${e.localizedMessage}"))
-            }
+            emitCachedGiveaway(id, "Error de conexión: ${e.localizedMessage ?: "Verifique su conexión"}")
+        }
+    }
+
+    private suspend fun kotlinx.coroutines.flow.FlowCollector<Resource<Giveaway>>.emitCachedGiveaway(
+        id: Int,
+        errorMessage: String
+    ) {
+        val cachedItem = cacheDao.getCachedGiveaways().first().find { it.id == id }
+        if (cachedItem == null) {
+            emit(Resource.Error(errorMessage))
+        } else {
+            val isFav = favoritoDao.isFavorito(id).first()
+            emit(Resource.Success(cachedItem.toDomain(isFavorite = isFav)))
         }
     }
 }
